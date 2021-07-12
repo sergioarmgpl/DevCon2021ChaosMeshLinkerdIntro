@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: myapps
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: apache
+  name: apache
+  namespace: myapps
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: apache
+  template:
+    metadata:
+      labels:
+        app: apache
+      annotations:
+        linkerd.io/inject: enabled
+    spec:
+      containers:
+      - image: czdev/apache
+        name: apache
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: client
+  name: client
+  namespace: myapps
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client
+  template:
+    metadata:
+      labels:
+        app: client
+      annotations:
+        linkerd.io/inject: enabled
+    spec:
+      containers:
+      - image: czdev/client
+        name: client
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: apache
+  name: apache
+  namespace: myapps
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: apache
